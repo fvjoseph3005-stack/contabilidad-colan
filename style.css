@@ -1,0 +1,10 @@
+body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+header { text-align: center; background: #4CAF50; color: white; padding: 20px; border-radius: 10px; }
+nav { margin: 15px 0; text-align: center; }
+button { padding: 10px 15px; margin: 5px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+button:hover { background: #45a049; }
+input, select { padding: 8px; margin: 5px; width: 90%; max-width: 300px; }
+.section { display: none; background: white; padding: 15px; margin: 10px 0; border-radius: 8px; }
+.hidden { display: none; }
+ul { list-style: none; padding: 0; }
+li { padding: 8px; background: #eee; margin: 5px 0; border-radius: 5px; }
