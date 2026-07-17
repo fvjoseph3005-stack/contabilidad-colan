@@ -40,19 +40,25 @@
         </section>
 
         <section id="gastos" class="section hidden">
-            <h2>Registrar Gasto</h2>
-            <input type="text" id="gastoDesc" placeholder="Descripción">
-            <input type="number" id="gastoMonto" placeholder="Monto S/.">
-            <select id="gastoCategoria">
-                <option value="Agricultura">Agricultura</option>
-                <option value="Pesca">Pesca</option>
-                <option value="Barberia">Barbería</option>
-                <option value="Ropa">Ropa</option>
-                <option value="Otros">Otros</option>
-            </select>
-            <button onclick="registrarGasto()">Registrar Gasto</button>
-            <ul id="listaGastos"></ul>
-        </section>
+    <h2>Registrar Gasto</h2>
+    <input type="text" id="gastoDesc" placeholder="Descripción (ej. Fertilizantes)">
+    <input type="number" id="gastoMonto" placeholder="Monto S/.">
+    
+    <select id="gastoCategoria">
+        <option value="Agricultura">Agricultura</option>
+        <option value="Pesca">Pesca</option>
+        <option value="Barberia">Barbería</option>
+        <option value="Ropa">Ropa</option>
+        <option value="Otros">Otros</option>
+    </select>
+    
+    <select id="gastoProducto">
+        <option value="">Sin producto específico</option>
+    </select>
+    
+    <button onclick="registrarGasto()">Registrar Gasto</button>
+    <ul id="listaGastos"></ul>
+</section>
 
         <section id="reportes" class="section hidden">
             <h2>Reportes</h2>
