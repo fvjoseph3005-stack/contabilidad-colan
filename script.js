@@ -18,6 +18,7 @@ function showSection(section) {
     if (section === 'reportes') generarReporte();
 }
 
+// Funciones básicas (mantenerlas)
 function agregarProducto() {
     const nombre = document.getElementById('prodNombre').value.trim();
     const cantidad = parseFloat(document.getElementById('prodCantidad').value);
@@ -78,32 +79,78 @@ function registrarGasto() {
 
 function actualizarGastos() {
     const lista = document.getElementById('listaGastos');
-    lista.innerHTML = gastos.slice(-5).map(g => `<li>${g.fecha} - ${g.descripcion}: S/${g.monto}</li>`).join('');
+    lista.innerHTML = gastos.slice(-5).map(g => `<li>${g.fecha} - ${g.descripcion} (${g.categoria}): S/${g.monto}</li>`).join('');
 }
 
+// ====================== REPORTE MEJORADO ======================
 function generarReporte() {
-    const totalV = ventas.reduce((a, v) => a + v.total, 0);
-    const totalG = gastos.reduce((a, g) => a + g.monto, 0);
-    const ganancia = totalV - totalG;
+    // Ventas por producto
+    const ventasPorProducto = {};
+    ventas.forEach(v => {
+        if (!ventasPorProducto[v.producto]) ventasPorProducto[v.producto] = {cantidad: 0, total: 0};
+        ventasPorProducto[v.producto].cantidad += v.cantidad;
+        ventasPorProducto[v.producto].total += v.total;
+    });
 
-    let html = `<p><b>Ventas Totales:</b> S/ ${totalV.toFixed(2)}</p>`;
-    html += `<p><b>Gastos Totales:</b> S/ ${totalG.toFixed(2)}</p>`;
-    html += `<p style="color:green; font-size:18px;"><b>Ganancia:</b> S/ ${ganancia.toFixed(2)}</p>`;
-    html += `<h3>Inventario:</h3><ul>${inventario.map(p => `<li>${p.nombre}: ${p.cantidad}</li>`).join('')}</ul>`;
+    let html = `<h2>Reporte Detallado - Pueblo Nuevo de Colán</h2>`;
+
+    // Ventas
+    html += `<h3>📊 Ventas por Producto</h3>`;
+    html += `<table style="width:100%; border-collapse: collapse; margin-bottom:20px;">`;
+    html += `<tr style="background:#4CAF50; color:white;"><th>Producto</th><th>Cantidad Vendida</th><th>Total S/</th></tr>`;
+
+    let totalVentas = 0;
+    Object.keys(ventasPorProducto).forEach(prod => {
+        const data = ventasPorProducto[prod];
+        totalVentas += data.total;
+        html += `<tr style="border-bottom:1px solid #ddd; text-align:center;">
+                    <td>${prod}</td>
+                    <td>${data.cantidad}</td>
+                    <td><b>S/ ${data.total.toFixed(2)}</b></td>
+                 </tr>`;
+    });
+    html += `</table>`;
+
+    // Gastos por categoría
+    const gastosPorCategoria = {};
+    gastos.forEach(g => {
+        if (!gastosPorCategoria[g.categoria]) gastosPorCategoria[g.categoria] = 0;
+        gastosPorCategoria[g.categoria] += g.monto;
+    });
+
+    html += `<h3>💰 Gastos por Categoría</h3>`;
+    html += `<table style="width:100%; border-collapse: collapse; margin-bottom:20px;">`;
+    html += `<tr style="background:#f44336; color:white;"><th>Categoría</th><th>Total S/</th></tr>`;
+
+    let totalGastos = 0;
+    Object.keys(gastosPorCategoria).forEach(cat => {
+        const monto = gastosPorCategoria[cat];
+        totalGastos += monto;
+        html += `<tr style="border-bottom:1px solid #ddd; text-align:center;">
+                    <td>${cat}</td>
+                    <td><b>S/ ${monto.toFixed(2)}</b></td>
+                 </tr>`;
+    });
+    html += `</table>`;
+
+    // Resultado final
+    const ganancia = totalVentas - totalGastos;
+    html += `<h2 style="color:green; text-align:center;">Ganancia Total: S/ ${ganancia.toFixed(2)}</h2>`;
+
+    // Inventario
+    html += `<h3>📦 Inventario Actual</h3><ul>`;
+    inventario.forEach(p => html += `<li><b>${p.nombre}:</b> ${p.cantidad} ${p.unidad}</li>`);
+    html += `</ul>`;
 
     document.getElementById('reporteContenido').innerHTML = html;
 }
 
 function exportarCSV() {
-    let csv = "Fecha,Tipo,Detalle,Monto\n";
-    ventas.forEach(v => csv += `${v.fecha},Venta,${v.producto},${v.total}\n`);
-    gastos.forEach(g => csv += `${g.fecha},Gasto,${g.descripcion},${g.monto}\n`);
-    
+    let csv = "Tipo,Detalle,Monto,Categoria/Producto\n";
+    ventas.forEach(v => csv += `Venta,${v.producto},${v.total},-\n`);
+    gastos.forEach(g => csv += `Gasto,${g.descripcion},${g.monto},${g.categoria}\n`);
     const blob = new Blob([csv], {type: 'text/csv'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'reporte_colan.csv'; a.click();
+    a.href = url; a.download = 'reporte_detallado_colan.csv'; a.click();
 }
-
-// Iniciar
-showSection('inventario');
