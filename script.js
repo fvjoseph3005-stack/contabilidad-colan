@@ -64,7 +64,7 @@ function registrarVenta() {
     const item = inventario.find(p => p.nombre === producto);
     if (item && item.cantidad >= cantidad) {
         item.cantidad -= cantidad;
-        if (item.cantidad <= 0) item.cantidad = 0; // evita negativos
+        if (item.cantidad < 0) item.cantidad = 0;
 
         ventas.push({
             fecha: new Date().toLocaleDateString('es-PE'),
@@ -77,7 +77,7 @@ function registrarVenta() {
         saveData();
         actualizarInventario();
         actualizarSelectVentas();
-        actualizarSelectGastoProducto(); // actualiza dropdown de gastos
+        actualizarSelectGastoProducto();
         alert("✅ Venta registrada correctamente");
     } else {
         alert("Stock insuficiente");
@@ -88,10 +88,9 @@ function registrarVenta() {
 function actualizarSelectGastoProducto() {
     const select = document.getElementById('gastoProducto');
     if (!select) return;
-    
     let options = '<option value="">Sin producto específico</option>';
     inventario.forEach(p => {
-        if (p.cantidad > 0) {  // Solo muestra productos con stock
+        if (p.cantidad > 0) {
             options += `<option value="${p.nombre}">${p.nombre}</option>`;
         }
     });
@@ -126,22 +125,17 @@ function actualizarGastos() {
     ).join('');
 }
 
-// ==================== REPORTE POR FECHAS ====================
+// ==================== REPORTE FINAL ====================
 function generarReporte() {
-    let html = `<h2>Reporte Detallado por Fecha</h2>`;
+    let html = `<h2>📊 Reporte Detallado por Fecha</h2>`;
 
-    // Agrupar todo por fecha
     const datosPorFecha = {};
 
-    // Ventas
     ventas.forEach(v => {
         if (!datosPorFecha[v.fecha]) datosPorFecha[v.fecha] = {ventas: [], gastos: {}};
-        if (!datosPorFecha[v.fecha].ventas.some(item => item.producto === v.producto)) {
-            datosPorFecha[v.fecha].ventas.push(v);
-        }
+        datosPorFecha[v.fecha].ventas.push(v);
     });
 
-    // Gastos por producto y fecha
     gastos.forEach(g => {
         if (!datosPorFecha[g.fecha]) datosPorFecha[g.fecha] = {ventas: [], gastos: {}};
         const prod = g.producto || "General";
@@ -149,45 +143,54 @@ function generarReporte() {
         datosPorFecha[g.fecha].gastos[prod].push(g);
     });
 
-    // Mostrar por fecha (de más reciente a más antigua)
+    let totalVentasMes = 0;
+    let totalGastosMes = 0;
+
     Object.keys(datosPorFecha).sort().reverse().forEach(fecha => {
         const data = datosPorFecha[fecha];
-        let totalV = 0;
+        let totalV = data.ventas.reduce((sum, v) => sum + v.total, 0);
         let totalG = 0;
 
         html += `<div style="border:3px solid #2e7d32; padding:20px; margin:20px 0; border-radius:12px; background:#f9fff9;">`;
-        html += `<h3 style="color:#1b5e20;">📅 Fecha: ${fecha}</h3>`;
+        html += `<h3 style="color:#1b5e20;">📅 ${fecha}</h3>`;
 
-        // Ventas
         if (data.ventas.length > 0) {
             html += `<h4>💰 Ventas</h4>`;
             data.ventas.forEach(v => {
-                totalV += v.total;
-                html += `<p><b>${v.producto}</b>: ${v.cantidad} unidades - S/ ${v.total.toFixed(2)}</p>`;
+                html += `<p><b>${v.producto}</b>: ${v.cantidad} und. - S/ ${v.total.toFixed(2)}</p>`;
             });
         }
+        totalVentasMes += totalV;
 
-        // Gastos por producto
         html += `<h4>📋 Gastos por Producto</h4>`;
         Object.keys(data.gastos).forEach(prod => {
             const gastosProd = data.gastos[prod];
-            const sumaGastos = gastosProd.reduce((sum, g) => sum + g.monto, 0);
-            totalG += sumaGastos;
+            const sumaG = gastosProd.reduce((sum, g) => sum + g.monto, 0);
+            totalG += sumaG;
 
-            html += `<p style="margin-top:10px;"><b>${prod}:</b></p>`;
+            html += `<p style="font-weight:bold;">${prod}:</p>`;
             gastosProd.forEach(g => {
-                html += `<li style="margin-left:20px;">${g.descripcion} (${g.categoria}): S/ ${g.monto.toFixed(2)}</li>`;
+                html += `<li style="margin-left:25px;">${g.descripcion} (${g.categoria}): S/ ${g.monto.toFixed(2)}</li>`;
             });
-            html += `<p style="margin-left:20px; color:#d32f2f;">Total gastos ${prod}: S/ ${sumaGastos.toFixed(2)}</p>`;
+            html += `<p style="margin-left:25px; color:#d32f2f;">Subtotal: S/ ${sumaG.toFixed(2)}</p>`;
         });
+        totalGastosMes += totalG;
 
-        const ganancia = totalV - totalG;
-        html += `<h3 style="color:green; text-align:center; margin-top:15px;">Ganancia del día: S/ ${ganancia.toFixed(2)}</h3>`;
+        const gananciaDia = totalV - totalG;
+        html += `<h3 style="color:green; text-align:center;">Ganancia del día: S/ ${gananciaDia.toFixed(2)}</h3>`;
         html += `</div>`;
     });
 
+    const gananciaMes = totalVentasMes - totalGastosMes;
+    html += `<div style="background:#e8f5e9; padding:25px; border-radius:12px; text-align:center; margin-top:30px;">`;
+    html += `<h2>Resumen Total</h2>`;
+    html += `<p><b>Total Ventas:</b> S/ ${totalVentasMes.toFixed(2)}</p>`;
+    html += `<p><b>Total Gastos:</b> S/ ${totalGastosMes.toFixed(2)}</p>`;
+    html += `<h2 style="color:green;">Ganancia Total: S/ ${gananciaMes.toFixed(2)}</h2>`;
+    html += `</div>`;
+
     if (Object.keys(datosPorFecha).length === 0) {
-        html += `<p style="color:orange; text-align:center;">Aún no hay movimientos registrados.</p>`;
+        html = `<p style="color:orange; text-align:center;">Aún no hay movimientos registrados.</p>`;
     }
 
     document.getElementById('reporteContenido').innerHTML = html;
