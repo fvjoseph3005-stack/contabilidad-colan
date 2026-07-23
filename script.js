@@ -65,7 +65,7 @@ function registrarVenta() {
     if (item && item.cantidad >= cantidad) {
         item.cantidad -= cantidad;
         if (item.cantidad <= 0) {
-            inventario = inventario.filter(p => p.nombre !== producto); // Borra si llega a 0
+            inventario = inventario.filter(p => p.nombre !== producto);
         }
 
         ventas.push({
