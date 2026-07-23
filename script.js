@@ -64,7 +64,9 @@ function registrarVenta() {
     const item = inventario.find(p => p.nombre === producto);
     if (item && item.cantidad >= cantidad) {
         item.cantidad -= cantidad;
-        if (item.cantidad < 0) item.cantidad = 0;
+        if (item.cantidad <= 0) {
+            inventario = inventario.filter(p => p.nombre !== producto); // Borra si llega a 0
+        }
 
         ventas.push({
             fecha: new Date().toLocaleDateString('es-PE'),
@@ -125,7 +127,7 @@ function actualizarGastos() {
     ).join('');
 }
 
-// ==================== REPORTE FINAL ====================
+// ==================== REPORTE ====================
 function generarReporte() {
     let html = `<h2>📊 Reporte Detallado por Fecha</h2>`;
 
@@ -194,4 +196,14 @@ function generarReporte() {
     }
 
     document.getElementById('reporteContenido').innerHTML = html;
+}
+
+function exportarCSV() {
+    let csv = "Fecha,Tipo,Detalle,Categoria/Producto,Monto\n";
+    ventas.forEach(v => csv += `${v.fecha},Venta,${v.producto},-,${v.total}\n`);
+    gastos.forEach(g => csv += `${g.fecha},Gasto,${g.descripcion},${g.categoria},${g.monto}\n`);
+    const blob = new Blob([csv], {type: 'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'reporte_colan.csv'; a.click();
 }

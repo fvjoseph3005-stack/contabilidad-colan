@@ -16,6 +16,7 @@
     </header>
 
     <nav>
+        <button onclick="showSection('inicio')">🏠 Inicio</button>
         <button onclick="showSection('inventario')">📦 Inventario</button>
         <button onclick="showSection('ventas')">💰 Ventas</button>
         <button onclick="showSection('gastos')">📋 Gastos</button>
@@ -23,9 +24,22 @@
     </nav>
 
     <main>
-        <section id="inventario" class="section">
+        <section id="inicio" class="section">
+            <h2>🌱 Bienvenido a Contabilidad Colán</h2>
+            <div class="galeria">
+                <img src="https://source.unsplash.com/600x400/?farm,field" alt="Campo">
+                <img src="https://source.unsplash.com/600x400/?agriculture,farmer" alt="Agricultor">
+                <img src="https://source.unsplash.com/600x400/?onion,harvest" alt="Cosecha">
+                <img src="https://source.unsplash.com/600x400/?banana,plantation" alt="Plátano">
+            </div>
+            <p style="text-align:center; margin-top:20px; font-size:18px;">
+                Herramienta diseñada para microempresas rurales de Pueblo Nuevo de Colán
+            </p>
+        </section>
+
+        <section id="inventario" class="section hidden">
             <h2>📦 Inventario</h2>
-            <input type="text" id="prodNombre" placeholder="Producto (ej. Camote, Pescado)">
+            <input type="text" id="prodNombre" placeholder="Producto">
             <input type="number" id="prodCantidad" placeholder="Cantidad">
             <input type="text" id="prodUnidad" placeholder="Unidad" value="kg">
             <button onclick="agregarProducto()">Agregar/Actualizar</button>
@@ -38,7 +52,6 @@
             <input type="number" id="ventaCantidad" placeholder="Cantidad vendida">
             <input type="number" id="ventaPrecio" placeholder="Precio unitario (S/)">
             <button onclick="registrarVenta()">Registrar Venta</button>
-            <ul id="listaVentas"></ul>
         </section>
 
         <section id="gastos" class="section hidden">
