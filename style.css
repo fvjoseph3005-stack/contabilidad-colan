@@ -1,32 +1,34 @@
 body {
     font-family: 'Segoe UI', Arial, sans-serif;
     margin: 0;
-    background: linear-gradient(to bottom, #e8f5e9, #f1f8e9);
+    background: url('https://source.unsplash.com/1600x900/?farm,field') no-repeat center center fixed;
+    background-size: cover;
     color: #333;
 }
 
 header {
-    background: linear-gradient(to right, #2e7d32, #4caf50);
+    background: rgba(27, 94, 32, 0.95);
     color: white;
     text-align: center;
-    padding: 25px 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    padding: 30px 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 .header-content h1 {
     margin: 0;
-    font-size: 2.2em;
+    font-size: 2.5em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
 
 nav {
-    background: #1b5e20;
+    background: rgba(27, 94, 32, 0.95);
     padding: 12px;
     text-align: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 button {
-    padding: 12px 18px;
+    padding: 14px 20px;
     margin: 6px;
     background: #4caf50;
     color: white;
@@ -35,27 +37,30 @@ button {
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
 }
 
 button:hover {
     background: #388e3c;
-    transform: scale(1.05);
+    transform: translateY(-3px);
 }
 
 .section {
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
     margin: 15px;
-    padding: 20px;
+    padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    backdrop-filter: blur(5px);
 }
 
 input, select {
     padding: 12px;
     margin: 8px 0;
     width: 90%;
-    border: 1px solid #81c784;
-    border-radius: 6px;
+    border: 2px solid #81c784;
+    border-radius: 8px;
+    font-size: 16px;
 }
 
 ul {
@@ -64,17 +69,17 @@ ul {
 }
 
 li {
-    padding: 10px;
+    padding: 12px;
     background: #f1f8e9;
-    margin: 6px 0;
-    border-radius: 6px;
-    border-left: 5px solid #4caf50;
+    margin: 8px 0;
+    border-radius: 8px;
+    border-left: 6px solid #4caf50;
 }
 
 footer {
     text-align: center;
-    padding: 15px;
-    background: #1b5e20;
+    padding: 20px;
+    background: rgba(27, 94, 32, 0.95);
     color: white;
-    margin-top: 20px;
+    margin-top: 30px;
 }
