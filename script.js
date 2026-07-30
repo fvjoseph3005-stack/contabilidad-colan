@@ -90,11 +90,10 @@ function registrarVenta() {
 function actualizarSelectGastoProducto() {
     const select = document.getElementById('gastoProducto');
     if (!select) return;
+
     let options = '<option value="">Sin producto específico</option>';
     inventario.forEach(p => {
-        if (p.cantidad > 0) {
-            options += `<option value="${p.nombre}">${p.nombre}</option>`;
-        }
+        options += `<option value="${p.nombre}">${p.nombre}</option>`;
     });
     select.innerHTML = options;
 }
@@ -105,7 +104,10 @@ function registrarGasto() {
     const cat = document.getElementById('gastoCategoria').value;
     const producto = document.getElementById('gastoProducto').value || "General";
 
-    if (!desc || isNaN(monto)) return alert("Completa descripción y monto");
+    if (!desc || isNaN(monto)) {
+        alert("Completa descripción y monto");
+        return;
+    }
 
     gastos.push({
         fecha: new Date().toLocaleDateString('es-PE'),
@@ -117,11 +119,12 @@ function registrarGasto() {
 
     saveData();
     actualizarGastos();
-    alert("Gasto registrado");
+    alert("Gasto registrado correctamente");
 }
 
 function actualizarGastos() {
     const lista = document.getElementById('listaGastos');
+    if (!lista) return;
     lista.innerHTML = gastos.slice(-5).map(g => 
         `<li>${g.fecha} - ${g.descripcion} (${g.categoria}) → ${g.producto}: S/${g.monto}</li>`
     ).join('');
@@ -141,7 +144,9 @@ function generarReporte() {
     gastos.forEach(g => {
         if (!datosPorFecha[g.fecha]) datosPorFecha[g.fecha] = {ventas: [], gastos: {}};
         const prod = g.producto || "General";
-        if (!datosPorFecha[g.fecha].gastos[prod]) datosPorFecha[g.fecha].gastos[prod] = [];
+        if (!datosPorFecha[g.fecha].gastos[prod]) {
+            datosPorFecha[g.fecha].gastos[prod] = [];
+        }
         datosPorFecha[g.fecha].gastos[prod].push(g);
     });
 
@@ -170,12 +175,13 @@ function generarReporte() {
             const sumaG = gastosProd.reduce((sum, g) => sum + g.monto, 0);
             totalG += sumaG;
 
-            html += `<p style="font-weight:bold;">${prod}:</p>`;
+            html += `<p style="font-weight:bold; margin-top:10px;">${prod}:</p>`;
             gastosProd.forEach(g => {
                 html += `<li style="margin-left:25px;">${g.descripcion} (${g.categoria}): S/ ${g.monto.toFixed(2)}</li>`;
             });
-            html += `<p style="margin-left:25px; color:#d32f2f;">Subtotal: S/ ${sumaG.toFixed(2)}</p>`;
+            html += `<p style="margin-left:25px; color:#d32f2f;"><b>Subtotal ${prod}: S/ ${sumaG.toFixed(2)}</b></p>`;
         });
+
         totalGastosMes += totalG;
 
         const gananciaDia = totalV - totalG;
