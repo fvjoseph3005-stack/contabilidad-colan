@@ -77,13 +77,14 @@
         <section id="reportes" class="section hidden">
             <h2>📊 Reportes</h2>
             <button onclick="generarReporte()">Generar Reporte Actual</button>
-            <div id="reporteContenido"></div>
-            <button onclick="exportarCSV()">Exportar a CSV</button>
+            <button onclick="borrarHistorial()" style="background:#d32f2f; margin-left:10px;">🗑️ Borrar Historial</button>
+            <div id="reporteContenido" style="margin-top:20px;"></div>
+            <button onclick="exportarCSV()" style="margin-top:15px;">Exportar a CSV</button>
         </section>
     </main>
 
     <footer>
-        <p>Prototipo para tesis • Contabilidad Rural de Pueblo Nuevo de Colán</p>
+        <p>Contabilidad Rural de Pueblo Nuevo de Colán</p>
     </footer>
 
     <script src="script.js"></script>

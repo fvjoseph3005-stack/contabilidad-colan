@@ -91,13 +91,18 @@ function actualizarSelectGastoProducto() {
     const select = document.getElementById('gastoProducto');
     if (!select) return;
 
+    // Usa los productos del inventario + los que ya tienen ventas
+    const productosUnicos = new Set();
+    inventario.forEach(p => productosUnicos.add(p.nombre));
+    ventas.forEach(v => productosUnicos.add(v.producto));
+
     let options = '<option value="">Selecciona un producto</option>';
     
-    if (inventario.length === 0) {
+    if (productosUnicos.size === 0) {
         options += '<option value="" disabled>No hay productos registrados</option>';
     } else {
-        inventario.forEach(p => {
-            options += `<option value="${p.nombre}">${p.nombre}</option>`;
+        productosUnicos.forEach(nombre => {
+            options += `<option value="${nombre}">${nombre}</option>`;
         });
     }
     
@@ -141,9 +146,9 @@ function actualizarGastos() {
     ).join('');
 }
 
-// ==================== REPORTE POR PRODUCTO ====================
+// ==================== REPORTE POR PRODUCTO Y FECHA ====================
 function generarReporte() {
-    let html = `<h2>📊 Reporte Separado por Producto</h2>`;
+    let html = `<h2>📊 Reporte por Producto y Fecha</h2>`;
 
     const productos = new Set();
     ventas.forEach(v => productos.add(v.producto));
@@ -158,41 +163,60 @@ function generarReporte() {
         const ventasProd = ventas.filter(v => v.producto === prod);
         const gastosProd = gastos.filter(g => g.producto === prod);
 
-        const totalVentas = ventasProd.reduce((sum, v) => sum + v.total, 0);
-        const totalGastos = gastosProd.reduce((sum, g) => sum + g.monto, 0);
-        const ganancia = totalVentas - totalGastos;
+        // Agrupar por fecha
+        const fechas = new Set();
+        ventasProd.forEach(v => fechas.add(v.fecha));
+        gastosProd.forEach(g => fechas.add(g.fecha));
 
         html += `<div style="border:3px solid #2e7d32; padding:20px; margin:25px 0; border-radius:12px; background:#f9fff9;">`;
         html += `<h2 style="color:#1b5e20; text-align:center;">Producto: ${prod}</h2>`;
 
-        // Ventas
-        html += `<h4>💰 Ventas</h4>`;
-        if (ventasProd.length > 0) {
-            ventasProd.forEach(v => {
-                html += `<p>${v.fecha} → ${v.cantidad} und. × S/${v.precio} = <b>S/ ${v.total.toFixed(2)}</b></p>`;
-            });
-            html += `<p style="color:green;"><b>Total Ventas: S/ ${totalVentas.toFixed(2)}</b></p>`;
-        } else {
-            html += `<p style="color:gray;">Sin ventas registradas</p>`;
-        }
+        fechas.forEach(fecha => {
+            const ventasFecha = ventasProd.filter(v => v.fecha === fecha);
+            const gastosFecha = gastosProd.filter(g => g.fecha === fecha);
 
-        // Gastos
-        html += `<h4>📋 Gastos</h4>`;
-        if (gastosProd.length > 0) {
-            gastosProd.forEach(g => {
-                html += `<p>${g.fecha} → ${g.descripcion} (${g.categoria}): <b>S/ ${g.monto.toFixed(2)}</b></p>`;
-            });
-            html += `<p style="color:#d32f2f;"><b>Total Gastos: S/ ${totalGastos.toFixed(2)}</b></p>`;
-        } else {
-            html += `<p style="color:gray;">Sin gastos asignados</p>`;
-        }
+            const totalVentas = ventasFecha.reduce((sum, v) => sum + v.total, 0);
+            const totalGastos = gastosFecha.reduce((sum, g) => sum + g.monto, 0);
+            const ganancia = totalVentas - totalGastos;
 
-        // Ganancia
-        html += `<h3 style="color:green; text-align:center; margin-top:15px;">Ganancia de ${prod}: S/ ${ganancia.toFixed(2)}</h3>`;
+            html += `<div style="border-left:5px solid #4caf50; padding-left:15px; margin:15px 0;">`;
+            html += `<h4>📅 Fecha: ${fecha}</h4>`;
+
+            if (ventasFecha.length > 0) {
+                html += `<p><b>Ventas:</b></p>`;
+                ventasFecha.forEach(v => {
+                    html += `<p style="margin-left:15px;">${v.cantidad} und. × S/${v.precio} = S/ ${v.total.toFixed(2)}</p>`;
+                });
+                html += `<p style="margin-left:15px; color:green;"><b>Total Ventas: S/ ${totalVentas.toFixed(2)}</b></p>`;
+            }
+
+            if (gastosFecha.length > 0) {
+                html += `<p><b>Gastos:</b></p>`;
+                gastosFecha.forEach(g => {
+                    html += `<p style="margin-left:15px;">${g.descripcion} (${g.categoria}): S/ ${g.monto.toFixed(2)}</p>`;
+                });
+                html += `<p style="margin-left:15px; color:#d32f2f;"><b>Total Gastos: S/ ${totalGastos.toFixed(2)}</b></p>`;
+            }
+
+            html += `<p style="color:green; font-weight:bold;">Ganancia del día: S/ ${ganancia.toFixed(2)}</p>`;
+            html += `</div>`;
+        });
+
         html += `</div>`;
     });
 
     document.getElementById('reporteContenido').innerHTML = html;
+}
+
+// ==================== BORRAR HISTORIAL ====================
+function borrarHistorial() {
+    if (confirm("¿Estás seguro de borrar TODO el historial de ventas y gastos? Esta acción no se puede deshacer.")) {
+        ventas = [];
+        gastos = [];
+        saveData();
+        alert("Historial borrado correctamente");
+        generarReporte();
+    }
 }
 
 function exportarCSV() {
