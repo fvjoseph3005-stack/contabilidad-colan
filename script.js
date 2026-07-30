@@ -92,9 +92,15 @@ function actualizarSelectGastoProducto() {
     if (!select) return;
 
     let options = '<option value="">Selecciona un producto</option>';
-    inventario.forEach(p => {
-        options += `<option value="${p.nombre}">${p.nombre}</option>`;
-    });
+    
+    if (inventario.length === 0) {
+        options += '<option value="" disabled>No hay productos registrados</option>';
+    } else {
+        inventario.forEach(p => {
+            options += `<option value="${p.nombre}">${p.nombre}</option>`;
+        });
+    }
+    
     select.innerHTML = options;
 }
 
@@ -108,6 +114,7 @@ function registrarGasto() {
         alert("Completa descripción y monto");
         return;
     }
+    
     if (!producto) {
         alert("Debes seleccionar el producto al que pertenece este gasto");
         return;
@@ -123,7 +130,7 @@ function registrarGasto() {
 
     saveData();
     actualizarGastos();
-    alert("Gasto asignado correctamente al producto: " + producto);
+    alert("Gasto asignado correctamente a: " + producto);
 }
 
 function actualizarGastos() {
@@ -138,7 +145,6 @@ function actualizarGastos() {
 function generarReporte() {
     let html = `<h2>📊 Reporte Separado por Producto</h2>`;
 
-    // Obtener todos los productos que tienen ventas o gastos
     const productos = new Set();
     ventas.forEach(v => productos.add(v.producto));
     gastos.forEach(g => productos.add(g.producto));
@@ -159,7 +165,7 @@ function generarReporte() {
         html += `<div style="border:3px solid #2e7d32; padding:20px; margin:25px 0; border-radius:12px; background:#f9fff9;">`;
         html += `<h2 style="color:#1b5e20; text-align:center;">Producto: ${prod}</h2>`;
 
-        // Ventas del producto
+        // Ventas
         html += `<h4>💰 Ventas</h4>`;
         if (ventasProd.length > 0) {
             ventasProd.forEach(v => {
@@ -170,7 +176,7 @@ function generarReporte() {
             html += `<p style="color:gray;">Sin ventas registradas</p>`;
         }
 
-        // Gastos del producto
+        // Gastos
         html += `<h4>📋 Gastos</h4>`;
         if (gastosProd.length > 0) {
             gastosProd.forEach(g => {
@@ -181,7 +187,7 @@ function generarReporte() {
             html += `<p style="color:gray;">Sin gastos asignados</p>`;
         }
 
-        // Ganancia del producto
+        // Ganancia
         html += `<h3 style="color:green; text-align:center; margin-top:15px;">Ganancia de ${prod}: S/ ${ganancia.toFixed(2)}</h3>`;
         html += `</div>`;
     });
