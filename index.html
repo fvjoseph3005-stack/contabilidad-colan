@@ -5,13 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🌾 Contabilidad Colán</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
+    <!-- Botones de cuenta en la esquina superior derecha -->
+    <div id="auth-buttons" style="position: fixed; top: 15px; right: 20px; z-index: 1000;">
+        <button onclick="mostrarCrearCuenta()" style="margin-right: 8px;">Crear Cuenta</button>
+        <button onclick="mostrarIniciarSesion()">Iniciar Sesión</button>
+        <button id="btnCerrarSesion" onclick="cerrarSesion()" style="display:none; background:#d32f2f;">Cerrar Sesión</button>
+    </div>
+
     <header>
         <div class="header-content">
             <h1>🌾 Contabilidad Colán</h1>
             <p>Gestión sencilla para microempresas rurales</p>
             <p><strong>Pueblo Nuevo de Colán - Piura</strong></p>
+            <p id="usuarioActual" style="margin-top:8px; font-size:15px;"></p>
         </div>
     </header>
 
@@ -24,6 +38,7 @@
     </nav>
 
     <main>
+        <!-- Inicio -->
         <section id="inicio" class="section">
             <h2>🌱 Bienvenido a Contabilidad Colán</h2>
             <div class="collage">
@@ -32,13 +47,14 @@
                 <img src="cebolla.jpg" alt="Cebolla">
                 <img src="platano.jpg" alt="Plátano">
                 <img src="camote.jpg" alt="Camote">
-                <img src="choclo.jpg" alt="Pesca">
+                <img src="pesca.jpg" alt="Pesca">
             </div>
             <p style="text-align:center; margin-top:25px; font-size:18px; color:#1b5e20;">
                 Herramienta diseñada para los productores de Pueblo Nuevo de Colán
             </p>
         </section>
 
+        <!-- Inventario -->
         <section id="inventario" class="section hidden">
             <h2>📦 Inventario</h2>
             <input type="text" id="prodNombre" placeholder="Producto">
@@ -48,6 +64,7 @@
             <ul id="listaInventario"></ul>
         </section>
 
+        <!-- Ventas -->
         <section id="ventas" class="section hidden">
             <h2>💰 Registrar Venta</h2>
             <select id="ventaProducto"></select>
@@ -56,6 +73,7 @@
             <button onclick="registrarVenta()">Registrar Venta</button>
         </section>
 
+        <!-- Gastos -->
         <section id="gastos" class="section hidden">
             <h2>📋 Registrar Gasto</h2>
             <input type="text" id="gastoDesc" placeholder="Descripción">
@@ -68,12 +86,13 @@
                 <option value="Otros">Otros</option>
             </select>
             <select id="gastoProducto">
-                <option value="">Sin producto específico</option>
+                <option value="">Selecciona un producto</option>
             </select>
             <button onclick="registrarGasto()">Registrar Gasto</button>
             <ul id="listaGastos"></ul>
         </section>
 
+        <!-- Reportes -->
         <section id="reportes" class="section hidden">
             <h2>📊 Reportes</h2>
             <button onclick="generarReporte()">Generar Reporte Actual</button>
@@ -83,8 +102,31 @@
         </section>
     </main>
 
+    <!-- Modal Crear Cuenta -->
+    <div id="modalCrear" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000;">
+        <div style="background:white; max-width:400px; margin:80px auto; padding:30px; border-radius:12px;">
+            <h2>Crear Cuenta</h2>
+            <input type="text" id="regNombre" placeholder="Nombre de usuario" style="width:100%; margin:8px 0; padding:10px;">
+            <input type="email" id="regEmail" placeholder="Correo Gmail" style="width:100%; margin:8px 0; padding:10px;">
+            <input type="password" id="regPassword" placeholder="Crear contraseña" style="width:100%; margin:8px 0; padding:10px;">
+            <button onclick="crearCuenta()" style="width:100%; margin-top:10px;">Registrarme</button>
+            <button onclick="cerrarModal('modalCrear')" style="width:100%; margin-top:8px; background:#777;">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal Iniciar Sesión -->
+    <div id="modalLogin" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000;">
+        <div style="background:white; max-width:400px; margin:80px auto; padding:30px; border-radius:12px;">
+            <h2>Iniciar Sesión</h2>
+            <input type="email" id="loginEmail" placeholder="Correo Gmail" style="width:100%; margin:8px 0; padding:10px;">
+            <input type="password" id="loginPassword" placeholder="Contraseña" style="width:100%; margin:8px 0; padding:10px;">
+            <button onclick="iniciarSesion()" style="width:100%; margin-top:10px;">Entrar</button>
+            <button onclick="cerrarModal('modalLogin')" style="width:100%; margin-top:8px; background:#777;">Cancelar</button>
+        </div>
+    </div>
+
     <footer>
-        <p>Contabilidad Rural de Pueblo Nuevo de Colán</p>
+        <p>Prototipo para tesis • Contabilidad Rural de Pueblo Nuevo de Colán</p>
     </footer>
 
     <script src="script.js"></script>

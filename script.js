@@ -1,13 +1,142 @@
-let inventario = JSON.parse(localStorage.getItem('inventario')) || [];
-let ventas = JSON.parse(localStorage.getItem('ventas')) || [];
-let gastos = JSON.parse(localStorage.getItem('gastos')) || [];
+// ==================== CONFIGURACIÓN DE FIREBASE ====================
+const firebaseConfig = {
+  apiKey: "AIzaSyBQZ9ITIXtAOjlKPQqDG0UWanNFEyxDArM",
+  authDomain: "contabilidad-colan.firebaseapp.com",
+  projectId: "contabilidad-colan",
+  storageBucket: "contabilidad-colan.firebasestorage.app",
+  messagingSenderId: "271536599286",
+  appId: "1:271536599286:web:449a9f6c876a6766bb7cd7",
+  measurementId: "G-R1V82VXLQ6"
+};
 
-function saveData() {
-    localStorage.setItem('inventario', JSON.stringify(inventario));
-    localStorage.setItem('ventas', JSON.stringify(ventas));
-    localStorage.setItem('gastos', JSON.stringify(gastos));
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Variables globales
+let usuarioActual = null;
+let inventario = [];
+let ventas = [];
+let gastos = [];
+
+// ==================== AUTENTICACIÓN ====================
+function mostrarCrearCuenta() {
+    document.getElementById('modalCrear').style.display = 'block';
 }
 
+function mostrarIniciarSesion() {
+    document.getElementById('modalLogin').style.display = 'block';
+}
+
+function cerrarModal(id) {
+    document.getElementById(id).style.display = 'none';
+}
+
+function crearCuenta() {
+    const nombre = document.getElementById('regNombre').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+
+    if (!nombre || !email || !password) {
+        alert("Completa todos los campos");
+        return;
+    }
+
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            return db.collection('usuarios').doc(user.uid).set({
+                nombre: nombre,
+                email: email,
+                inventario: [],
+                ventas: [],
+                gastos: []
+            });
+        })
+        .then(() => {
+            alert("Cuenta creada correctamente. Ahora inicia sesión.");
+            cerrarModal('modalCrear');
+        })
+        .catch((error) => {
+            alert("Error: " + error.message);
+        });
+}
+
+function iniciarSesion() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    if (!email || !password) {
+        alert("Completa correo y contraseña");
+        return;
+    }
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            usuarioActual = userCredential.user;
+            cargarDatosUsuario();
+            cerrarModal('modalLogin');
+            actualizarUI();
+        })
+        .catch((error) => {
+            alert("Error: " + error.message);
+        });
+}
+
+function cerrarSesion() {
+    auth.signOut().then(() => {
+        usuarioActual = null;
+        inventario = [];
+        ventas = [];
+        gastos = [];
+        actualizarUI();
+        showSection('inicio');
+        alert("Sesión cerrada");
+    });
+}
+
+function actualizarUI() {
+    const btnCerrar = document.getElementById('btnCerrarSesion');
+    const usuarioTexto = document.getElementById('usuarioActual');
+
+    if (usuarioActual) {
+        btnCerrar.style.display = 'inline-block';
+        usuarioTexto.innerText = "Usuario: " + usuarioActual.email;
+    } else {
+        btnCerrar.style.display = 'none';
+        usuarioTexto.innerText = "";
+    }
+}
+
+function cargarDatosUsuario() {
+    if (!usuarioActual) return;
+
+    db.collection('usuarios').doc(usuarioActual.uid).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                inventario = data.inventario || [];
+                ventas = data.ventas || [];
+                gastos = data.gastos || [];
+                actualizarInventario();
+                actualizarSelectVentas();
+                actualizarSelectGastoProducto();
+            }
+        });
+}
+
+function guardarDatosUsuario() {
+    if (!usuarioActual) return;
+
+    db.collection('usuarios').doc(usuarioActual.uid).update({
+        inventario: inventario,
+        ventas: ventas,
+        gastos: gastos
+    });
+}
+
+// ==================== NAVEGACIÓN ====================
 function showSection(section) {
     document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
     document.getElementById(section).style.display = 'block';
@@ -20,6 +149,8 @@ function showSection(section) {
 
 // ==================== INVENTARIO ====================
 function agregarProducto() {
+    if (!usuarioActual) return alert("Debes iniciar sesión primero");
+
     const nombre = document.getElementById('prodNombre').value.trim();
     const cantidad = parseFloat(document.getElementById('prodCantidad').value);
     const unidad = document.getElementById('prodUnidad').value || 'kg';
@@ -30,7 +161,7 @@ function agregarProducto() {
     if (existe) existe.cantidad += cantidad;
     else inventario.push({nombre, cantidad, unidad});
 
-    saveData();
+    guardarDatosUsuario();
     actualizarInventario();
     actualizarSelectVentas();
     actualizarSelectGastoProducto();
@@ -52,6 +183,8 @@ function actualizarSelectVentas() {
 }
 
 function registrarVenta() {
+    if (!usuarioActual) return alert("Debes iniciar sesión primero");
+
     const producto = document.getElementById('ventaProducto').value;
     const cantidad = parseFloat(document.getElementById('ventaCantidad').value);
     const precio = parseFloat(document.getElementById('ventaPrecio').value);
@@ -76,7 +209,7 @@ function registrarVenta() {
             total: cantidad * precio
         });
         
-        saveData();
+        guardarDatosUsuario();
         actualizarInventario();
         actualizarSelectVentas();
         actualizarSelectGastoProducto();
@@ -91,25 +224,20 @@ function actualizarSelectGastoProducto() {
     const select = document.getElementById('gastoProducto');
     if (!select) return;
 
-    // Usa los productos del inventario + los que ya tienen ventas
     const productosUnicos = new Set();
     inventario.forEach(p => productosUnicos.add(p.nombre));
     ventas.forEach(v => productosUnicos.add(v.producto));
 
     let options = '<option value="">Selecciona un producto</option>';
-    
-    if (productosUnicos.size === 0) {
-        options += '<option value="" disabled>No hay productos registrados</option>';
-    } else {
-        productosUnicos.forEach(nombre => {
-            options += `<option value="${nombre}">${nombre}</option>`;
-        });
-    }
-    
+    productosUnicos.forEach(nombre => {
+        options += `<option value="${nombre}">${nombre}</option>`;
+    });
     select.innerHTML = options;
 }
 
 function registrarGasto() {
+    if (!usuarioActual) return alert("Debes iniciar sesión primero");
+
     const desc = document.getElementById('gastoDesc').value.trim();
     const monto = parseFloat(document.getElementById('gastoMonto').value);
     const cat = document.getElementById('gastoCategoria').value;
@@ -119,9 +247,8 @@ function registrarGasto() {
         alert("Completa descripción y monto");
         return;
     }
-    
     if (!producto) {
-        alert("Debes seleccionar el producto al que pertenece este gasto");
+        alert("Debes seleccionar el producto");
         return;
     }
 
@@ -133,9 +260,9 @@ function registrarGasto() {
         producto: producto
     });
 
-    saveData();
+    guardarDatosUsuario();
     actualizarGastos();
-    alert("Gasto asignado correctamente a: " + producto);
+    alert("Gasto asignado a: " + producto);
 }
 
 function actualizarGastos() {
@@ -146,7 +273,7 @@ function actualizarGastos() {
     ).join('');
 }
 
-// ==================== REPORTE POR PRODUCTO Y FECHA ====================
+// ==================== REPORTE ====================
 function generarReporte() {
     let html = `<h2>📊 Reporte por Producto y Fecha</h2>`;
 
@@ -163,7 +290,6 @@ function generarReporte() {
         const ventasProd = ventas.filter(v => v.producto === prod);
         const gastosProd = gastos.filter(g => g.producto === prod);
 
-        // Agrupar por fecha
         const fechas = new Set();
         ventasProd.forEach(v => fechas.add(v.fecha));
         gastosProd.forEach(g => fechas.add(g.fecha));
@@ -187,7 +313,6 @@ function generarReporte() {
                 ventasFecha.forEach(v => {
                     html += `<p style="margin-left:15px;">${v.cantidad} und. × S/${v.precio} = S/ ${v.total.toFixed(2)}</p>`;
                 });
-                html += `<p style="margin-left:15px; color:green;"><b>Total Ventas: S/ ${totalVentas.toFixed(2)}</b></p>`;
             }
 
             if (gastosFecha.length > 0) {
@@ -195,7 +320,6 @@ function generarReporte() {
                 gastosFecha.forEach(g => {
                     html += `<p style="margin-left:15px;">${g.descripcion} (${g.categoria}): S/ ${g.monto.toFixed(2)}</p>`;
                 });
-                html += `<p style="margin-left:15px; color:#d32f2f;"><b>Total Gastos: S/ ${totalGastos.toFixed(2)}</b></p>`;
             }
 
             html += `<p style="color:green; font-weight:bold;">Ganancia del día: S/ ${ganancia.toFixed(2)}</p>`;
@@ -208,14 +332,14 @@ function generarReporte() {
     document.getElementById('reporteContenido').innerHTML = html;
 }
 
-// ==================== BORRAR HISTORIAL ====================
 function borrarHistorial() {
-    if (confirm("¿Estás seguro de borrar TODO el historial de ventas y gastos? Esta acción no se puede deshacer.")) {
+    if (!usuarioActual) return alert("Debes iniciar sesión");
+    if (confirm("¿Borrar todo el historial de ventas y gastos?")) {
         ventas = [];
         gastos = [];
-        saveData();
-        alert("Historial borrado correctamente");
+        guardarDatosUsuario();
         generarReporte();
+        alert("Historial borrado");
     }
 }
 
@@ -226,5 +350,14 @@ function exportarCSV() {
     const blob = new Blob([csv], {type: 'text/csv'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'reporte_por_producto.csv'; a.click();
+    a.href = url; a.download = 'reporte.csv'; a.click();
 }
+
+// Detectar si ya hay sesión iniciada
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        usuarioActual = user;
+        cargarDatosUsuario();
+        actualizarUI();
+    }
+});
