@@ -3,13 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌾 Contabilidad Colán</title>
-    <link rel="stylesheet" href="style.css">
     
+    <title>Contabilidad Colán - Gestión para Microempresas Rurales | Pueblo Nuevo de Colán</title>
+    
+    <meta name="description" content="Sistema de control de ventas, gastos e inventario para microempresas rurales de Pueblo Nuevo de Colán, Piura. Contabilidad sencilla para productores agrícolas.">
+    
+    <meta name="keywords" content="contabilidad colan, contabilidad pueblo nuevo de colan, inventario rural, ventas gastos agricultura, piura">
+    
+    <link rel="stylesheet" href="style.css">
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-R1V82VXLQ6"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-R1V82VXLQ6');
+    </script>
 </head>
 <body>
 
@@ -47,7 +62,7 @@
                 <img src="cebolla.jpg" alt="Cebolla">
                 <img src="platano.jpg" alt="Plátano">
                 <img src="camote.jpg" alt="Camote">
-                <img src="pesca.jpg" alt="Pesca">
+                <img src="choclo.jpg" alt="Choclo">
             </div>
             <p style="text-align:center; margin-top:25px; font-size:18px; color:#1b5e20;">
                 Herramienta diseñada para los productores de Pueblo Nuevo de Colán
@@ -59,7 +74,7 @@
             <h2>📦 Inventario</h2>
             <input type="text" id="prodNombre" placeholder="Producto">
             <input type="number" id="prodCantidad" placeholder="Cantidad">
-            <input type="text" id="prodUnidad" placeholder="Unidad" value="kg">
+            <input type="text" id="prodUnidad" placeholder="Unidad" value="Unidad de medida">
             <button onclick="agregarProducto()">Agregar/Actualizar</button>
             <ul id="listaInventario"></ul>
         </section>
@@ -126,7 +141,7 @@
     </div>
 
     <footer>
-        <p>• Contabilidad Rural de Pueblo Nuevo de Colán</p>
+        <p>Prototipo para tesis • Contabilidad Rural de Pueblo Nuevo de Colán</p>
     </footer>
 
     <script src="script.js"></script>
